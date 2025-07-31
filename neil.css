@@ -1,0 +1,9 @@
+.product_title,
+.title-wrapper,
+.is-large,
+#product-price,
+.in-stock,
+.cart,
+.wc-tabs-wrapper {
+	display: none !important;
+}
