@@ -1,8 +1,9 @@
 <?php
+
 /*
-Plugin Name: Neil-X Shop Acc
-Description: Plugin làm shop acc của Neil!
-Version: 1.1
+Plugin Name: ShopAcc Core
+Description: Simple plugin to make Neil's account shop.
+Version: 1.2
 Author: Neil
 */
 
@@ -26,7 +27,6 @@ function dev_designs_show_sku() {
     echo 'Mã: ' . $product->get_sku();
 }
 
-// Kiểm tra và thêm các chức năng WooCommerce
 if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins')))) {
     add_filter('posts_clauses', 'order_by_stock_status', 2000);
 }
@@ -34,18 +34,14 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 // Sắp xếp sản phẩm theo trạng thái tồn kho
 function order_by_stock_status($posts_clauses) {
     global $wpdb;
-  
     if (is_woocommerce() && (is_shop() || is_product_category() || is_product_tag())) {
         $posts_clauses['join'] .= " INNER JOIN $wpdb->postmeta istockstatus ON ($wpdb->posts.ID = istockstatus.post_id) ";
-        
-        // Nếu đang sắp xếp theo giá
         if (isset($_GET['orderby']) && ($_GET['orderby'] === 'price' || $_GET['orderby'] === 'price-desc')) {
             $posts_clauses['join'] .= " INNER JOIN $wpdb->postmeta iprice ON ($wpdb->posts.ID = iprice.post_id) ";
             $posts_clauses['orderby'] = " istockstatus.meta_value ASC, CAST(iprice.meta_value AS DECIMAL) " . 
                 ($_GET['orderby'] === 'price-desc' ? 'DESC' : 'ASC') . ", " . $posts_clauses['orderby'];
             $posts_clauses['where'] = " AND istockstatus.meta_key = '_stock_status' AND istockstatus.meta_value <> '' AND iprice.meta_key = '_price' " . $posts_clauses['where'];
         } else {
-            // Nếu không sắp xếp theo giá, chỉ sắp xếp theo trạng thái tồn kho
             $posts_clauses['orderby'] = " istockstatus.meta_value ASC, " . $posts_clauses['orderby'];
             $posts_clauses['where'] = " AND istockstatus.meta_key = '_stock_status' AND istockstatus.meta_value <> '' " . $posts_clauses['where'];
         }
@@ -62,7 +58,6 @@ function misha_change_related_products_heading() {
 // Hiển thị SKU trong danh sách sản phẩm
 function skyverge_shop_display_skus() {
     global $product;
-
     if ( $product->get_sku() ) {
         echo '<div class="box-excerpt is-small">Mã: ' . $product->get_sku() . '</div>';
     }
@@ -71,10 +66,8 @@ add_action( 'woocommerce_after_shop_loop_item_title', 'skyverge_shop_display_sku
 
 // Tạo trang tùy chỉnh khi plugin được kích hoạt
 function create_dang_acc_page() {
-    // Kiểm tra xem trang đã tồn tại chưa
     $page_check = get_page_by_path('dang-acc');
     if (empty($page_check)) {
-        // Tạo trang mới
         $page_data = array(
             'post_title'    => 'Đăng Acc',
             'post_name'     => 'dang-acc',
@@ -113,18 +106,15 @@ function handle_bulk_product_upload() {
   if (!current_user_can('edit_products')) {
     wp_send_json_error(['message' => 'Không có quyền.']);
   }
-
   $prefix = sanitize_text_field($_POST['prefix']);
   $prices = $_POST['prices'];
   $descs  = $_POST['descriptions'];
   $files  = $_FILES['images'];
   $uploadType = $_POST['uploadType'];
-
   $count = 0;
   $first_image_id = null;
   $gallery_ids = array();
 
-  // Tạo sản phẩm trước khi xử lý ảnh
   if ($uploadType === 'single') {
     $product_id = wp_insert_post([
       'post_title'   => strtoupper($prefix),
@@ -134,26 +124,19 @@ function handle_bulk_product_upload() {
       'post_type'    => 'product',
     ]);
 
-    // Set product type
     wp_set_object_terms($product_id, 'simple', 'product_type');
-
-    // Set product meta
     update_post_meta($product_id, '_price', $prices[0]);
     update_post_meta($product_id, '_regular_price', $prices[0]);
     $sku = strtoupper($prefix) . strtoupper(substr(md5(uniqid()), 0, 7));
     update_post_meta($product_id, '_sku', $sku);
     
-    // Set product description as SKU
     wp_update_post([
       'ID' => $product_id,
       'post_content' => $sku
     ]);
 
-    // Set virtual and sold individually
     update_post_meta($product_id, '_virtual', 'yes');
     update_post_meta($product_id, '_sold_individually', 'yes');
-
-    // Set additional required meta
     update_post_meta($product_id, '_visibility', 'visible');
     update_post_meta($product_id, '_stock_status', 'instock');
     update_post_meta($product_id, '_manage_stock', 'no');
@@ -165,8 +148,6 @@ function handle_bulk_product_upload() {
     update_post_meta($product_id, '_length', '');
     update_post_meta($product_id, '_width', '');
     update_post_meta($product_id, '_height', '');
-
-    // Clear product cache
     clean_post_cache($product_id);
     wc_delete_product_transients($product_id);
   }
@@ -197,14 +178,11 @@ function handle_bulk_product_upload() {
 
     if ($uploadType === 'single') {
       if ($i === 0) {
-        // Đặt ảnh đầu tiên làm ảnh đại diện
         set_post_thumbnail($product_id, $attach_id);
       } else {
-        // Thêm các ảnh còn lại vào gallery
         $gallery_ids[] = $attach_id;
       }
     } else {
-      // Xử lý upload theo lô
       $product_id = wp_insert_post([
         'post_title'   => strtoupper($prefix),
         'post_content' => '',
@@ -213,26 +191,19 @@ function handle_bulk_product_upload() {
         'post_type'    => 'product',
       ]);
 
-      // Set product type
       wp_set_object_terms($product_id, 'simple', 'product_type');
-
-      // Set product meta
       update_post_meta($product_id, '_price', $prices[$i]);
       update_post_meta($product_id, '_regular_price', $prices[$i]);
       $sku = strtoupper($prefix) . strtoupper(substr(md5(uniqid()), 0, 7));
       update_post_meta($product_id, '_sku', $sku);
       
-      // Set product description as SKU
       wp_update_post([
         'ID' => $product_id,
         'post_content' => $sku
       ]);
 
-      // Set virtual and sold individually
       update_post_meta($product_id, '_virtual', 'yes');
       update_post_meta($product_id, '_sold_individually', 'yes');
-
-      // Set additional required meta
       update_post_meta($product_id, '_visibility', 'visible');
       update_post_meta($product_id, '_stock_status', 'instock');
       update_post_meta($product_id, '_manage_stock', 'no');
@@ -244,18 +215,14 @@ function handle_bulk_product_upload() {
       update_post_meta($product_id, '_length', '');
       update_post_meta($product_id, '_width', '');
       update_post_meta($product_id, '_height', '');
-
-      // Clear product cache
       clean_post_cache($product_id);
       wc_delete_product_transients($product_id);
-
       set_post_thumbnail($product_id, $attach_id);
     }
 
     $count++;
   }
 
-  // Cập nhật gallery cho sản phẩm single
   if ($uploadType === 'single' && !empty($gallery_ids)) {
     update_post_meta($product_id, '_product_image_gallery', implode(',', $gallery_ids));
   }
@@ -268,7 +235,6 @@ function handle_delete_all_products() {
     wp_send_json_error(['message' => 'Không có quyền.']);
   }
 
-  // Lấy tất cả sản phẩm
   $products = get_posts([
     'post_type' => 'product',
     'posts_per_page' => -1,
@@ -279,14 +245,12 @@ function handle_delete_all_products() {
   $deleted_images = 0;
 
   foreach ($products as $product) {
-    // Lấy tất cả ảnh của sản phẩm
     $thumbnail_id = get_post_thumbnail_id($product->ID);
     if ($thumbnail_id) {
       wp_delete_attachment($thumbnail_id, true);
       $deleted_images++;
     }
 
-    // Lấy gallery ảnh
     $gallery_ids = get_post_meta($product->ID, '_product_image_gallery', true);
     if ($gallery_ids) {
       $gallery_ids = explode(',', $gallery_ids);
@@ -296,7 +260,6 @@ function handle_delete_all_products() {
       }
     }
 
-    // Xóa sản phẩm
     wp_delete_post($product->ID, true);
     $deleted_count++;
   }
@@ -315,7 +278,6 @@ function handle_delete_product_group() {
 
   $group_title = sanitize_text_field($_POST['group_title']);
 
-  // Lấy tất cả sản phẩm có cùng tên
   $products = get_posts([
     'post_type' => 'product',
     'posts_per_page' => -1,
@@ -327,14 +289,12 @@ function handle_delete_product_group() {
   $deleted_images = 0;
 
   foreach ($products as $product) {
-    // Lấy tất cả ảnh của sản phẩm
     $thumbnail_id = get_post_thumbnail_id($product->ID);
     if ($thumbnail_id) {
       wp_delete_attachment($thumbnail_id, true);
       $deleted_images++;
     }
 
-    // Lấy gallery ảnh
     $gallery_ids = get_post_meta($product->ID, '_product_image_gallery', true);
     if ($gallery_ids) {
       $gallery_ids = explode(',', $gallery_ids);
@@ -344,7 +304,6 @@ function handle_delete_product_group() {
       }
     }
 
-    // Xóa sản phẩm
     wp_delete_post($product->ID, true);
     $deleted_count++;
   }
@@ -388,13 +347,11 @@ function pvlan_hide_key_active() {
     echo '<style> div#flatsome-notice {display: none;}</style>';
 }
 
-// Enqueue custom CSS
 function neil_enqueue_styles() {
     wp_enqueue_style('neil-custom-styles', plugins_url('neil.css', __FILE__));
 }
 add_action('wp_enqueue_scripts', 'neil_enqueue_styles');
 
-// Hiển thị giá sản phẩm và phí trả góp
 add_action( 'woocommerce_after_add_to_cart_button', 'display_product_price_and_installment_fee', 10 );
 
 function display_product_price_and_installment_fee() {
