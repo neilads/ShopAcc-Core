@@ -3,7 +3,7 @@
  * Plugin Name: ShopAcc Core
  * Plugin URI: https://taphoaneil.dev
  * Description: Plugin quản lý shop account với tính năng upload hàng loạt và tùy chỉnh WooCommerce
- * Version: 1.3.1
+ * Version: 1.3.2
  * Author: Neil
  * Author URI: https://taphoaneil.dev
  * License: GPL v2 or later
@@ -16,7 +16,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('SHOPACC_CORE_VERSION', '1.3.1');
+define('SHOPACC_CORE_VERSION', '1.3.2');
 define('SHOPACC_CORE_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('SHOPACC_CORE_PLUGIN_URL', plugin_dir_url(__FILE__));
 
@@ -41,6 +41,7 @@ class ShopAcc_Core {
         require_once SHOPACC_CORE_PLUGIN_DIR . 'includes/class-flatsome-activator.php';
         require_once SHOPACC_CORE_PLUGIN_DIR . 'includes/class-github-updater.php';
         require_once SHOPACC_CORE_PLUGIN_DIR . 'includes/class-github-config.php';
+        require_once SHOPACC_CORE_PLUGIN_DIR . 'includes/class-price-formatter.php';
     }
     
     private function init_hooks() {
@@ -49,6 +50,7 @@ class ShopAcc_Core {
         new ShopAcc_Product_Manager();
         new ShopAcc_Template_Loader();
         new ShopAcc_Flatsome_Activator();
+        new ShopAcc_Price_Formatter();
         
         $this->init_github_updater();
         
