@@ -3,7 +3,7 @@
  * Plugin Name: ShopAcc Core
  * Plugin URI: https://taphoaneil.dev
  * Description: Plugin quản lý shop account với tính năng upload hàng loạt và tùy chỉnh WooCommerce
- * Version: 1.3.0
+ * Version: 1.3.1
  * Author: Neil
  * Author URI: https://taphoaneil.dev
  * License: GPL v2 or later
@@ -16,7 +16,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('SHOPACC_CORE_VERSION', '1.3.0');
+define('SHOPACC_CORE_VERSION', '1.3.1');
 define('SHOPACC_CORE_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('SHOPACC_CORE_PLUGIN_URL', plugin_dir_url(__FILE__));
 
@@ -53,6 +53,7 @@ class ShopAcc_Core {
         $this->init_github_updater();
         
         add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
+        add_action('wp_footer', array($this, 'change_out_of_stock_text'));
     }
     
     public function enqueue_scripts() {
@@ -61,6 +62,19 @@ class ShopAcc_Core {
         if (is_page('dang-acc')) {
             wp_enqueue_script('shopacc-core-upload', SHOPACC_CORE_PLUGIN_URL . 'assets/js/upload.js', array('jquery'), SHOPACC_CORE_VERSION, true);
         }
+    }
+    
+    public function change_out_of_stock_text() {
+        ?>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const elements = document.querySelectorAll('.out-of-stock-label');
+                elements.forEach(function (element) {
+                    element.textContent = 'Đã Bán';
+                });
+            });
+        </script>
+        <?php
     }
     
     public function activate() {

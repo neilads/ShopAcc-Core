@@ -11,7 +11,6 @@ class ShopAcc_WooCommerce_Customizer {
         add_filter('posts_clauses', array($this, 'order_by_stock_status'), 2000);
         add_filter('woocommerce_product_related_products_heading', array($this, 'change_related_products_heading'));
         add_action('woocommerce_after_shop_loop_item_title', array($this, 'display_sku_in_shop'), 15);
-        add_action('woocommerce_after_add_to_cart_button', array($this, 'display_product_price_and_installment_fee'), 10);
     }
     
     public function show_sku() {
@@ -47,12 +46,4 @@ class ShopAcc_WooCommerce_Customizer {
         }
     }
     
-    public function display_product_price_and_installment_fee() {
-        global $product;
-
-        $product_price = $product->get_price();
-        $formatted_price = intval($product_price);
-        
-        echo '<input type="text" id="product-price" data-value="' . $formatted_price . '" value="' . $formatted_price . '" onfocus="removeCurrencySymbol(\'product-price-page\')" onblur="addCurrencySymbol(\'product-price-page\')" oninput="formatCurrencyInput(\'product-price-page\'); updateDownPaymentAndInstallmentPeriod();"><br>';
-    }
 }
