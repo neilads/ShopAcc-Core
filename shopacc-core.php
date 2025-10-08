@@ -39,10 +39,7 @@ class ShopAcc_Core {
         require_once SHOPACC_CORE_PLUGIN_DIR . 'includes/class-product-manager.php';
         require_once SHOPACC_CORE_PLUGIN_DIR . 'includes/class-template-loader.php';
         require_once SHOPACC_CORE_PLUGIN_DIR . 'includes/class-flatsome-activator.php';
-        require_once SHOPACC_CORE_PLUGIN_DIR . 'includes/class-github-updater.php';
-        require_once SHOPACC_CORE_PLUGIN_DIR . 'includes/class-github-config.php';
         require_once SHOPACC_CORE_PLUGIN_DIR . 'includes/class-price-formatter.php';
-        require_once SHOPACC_CORE_PLUGIN_DIR . 'includes/class-admin-updates.php';
     }
     
     private function init_hooks() {
@@ -52,8 +49,6 @@ class ShopAcc_Core {
         new ShopAcc_Template_Loader();
         new ShopAcc_Flatsome_Activator();
         new ShopAcc_Price_Formatter();
-        
-        $this->init_github_updater();
         
         add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
         add_action('wp_footer', array($this, 'change_out_of_stock_text'));
@@ -89,14 +84,6 @@ class ShopAcc_Core {
         
     }
     
-    private function init_github_updater() {
-        if (is_admin()) {
-            $github_username = ShopAcc_GitHub_Config::get_github_username();
-            $github_repo = ShopAcc_GitHub_Config::get_github_repo();
-            
-            new ShopAcc_GitHub_Updater(__FILE__, $github_username, $github_repo);
-        }
-    }
     
     private function create_dang_acc_page() {
         $page_check = get_page_by_path('dang-acc');
