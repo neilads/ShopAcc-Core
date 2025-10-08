@@ -42,6 +42,7 @@ class ShopAcc_Core {
         require_once SHOPACC_CORE_PLUGIN_DIR . 'includes/class-github-updater.php';
         require_once SHOPACC_CORE_PLUGIN_DIR . 'includes/class-github-config.php';
         require_once SHOPACC_CORE_PLUGIN_DIR . 'includes/class-price-formatter.php';
+        require_once SHOPACC_CORE_PLUGIN_DIR . 'includes/class-admin-updates.php';
     }
     
     private function init_hooks() {

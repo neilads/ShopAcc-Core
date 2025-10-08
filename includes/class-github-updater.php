@@ -19,6 +19,7 @@ class ShopAcc_GitHub_Updater {
         add_filter('plugins_api', array($this, 'plugin_popup'), 10, 3);
         add_filter('upgrader_post_install', array($this, 'after_install'), 10, 3);
         add_action('admin_notices', array($this, 'update_notice'));
+        add_action('wp_ajax_shopacc_check_updates', array($this, 'ajax_check_updates'));
         
         $this->plugin_file = $plugin_file;
         $this->username = $github_username;
@@ -166,5 +167,24 @@ class ShopAcc_GitHub_Updater {
             echo '<a href="' . admin_url('plugins.php') . '">Xem chi tiết</a></p>';
             echo '</div>';
         }
+    }
+    
+    public function ajax_check_updates() {
+        if (!current_user_can('update_plugins')) {
+            wp_die('Unauthorized');
+        }
+        
+        delete_site_transient('update_plugins');
+        wp_update_plugins();
+        
+        $github_data = $this->get_repository_data();
+        $out_of_date = version_compare($this->version, $github_data['tag_name'], '<');
+        
+        wp_send_json_success(array(
+            'has_update' => $out_of_date,
+            'current_version' => $this->version,
+            'latest_version' => $github_data['tag_name'],
+            'message' => $out_of_date ? 'Có phiên bản mới ' . $github_data['tag_name'] : 'Đã cập nhật mới nhất'
+        ));
     }
 }
