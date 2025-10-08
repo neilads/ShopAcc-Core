@@ -1,11 +1,11 @@
 <?php
 /**
  * Plugin Name: ShopAcc Core
- * Plugin URI: https://your-website.com
+ * Plugin URI: https://taphoaneil.dev
  * Description: Plugin quản lý shop account với tính năng upload hàng loạt và tùy chỉnh WooCommerce
- * Version: 1.2
+ * Version: 1.3.0
  * Author: Neil
- * Author URI: https://your-website.com
+ * Author URI: https://taphoaneil.dev
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: shopacc-core
@@ -16,7 +16,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('SHOPACC_CORE_VERSION', '1.2');
+define('SHOPACC_CORE_VERSION', '1.3.0');
 define('SHOPACC_CORE_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('SHOPACC_CORE_PLUGIN_URL', plugin_dir_url(__FILE__));
 
@@ -39,6 +39,8 @@ class ShopAcc_Core {
         require_once SHOPACC_CORE_PLUGIN_DIR . 'includes/class-product-manager.php';
         require_once SHOPACC_CORE_PLUGIN_DIR . 'includes/class-template-loader.php';
         require_once SHOPACC_CORE_PLUGIN_DIR . 'includes/class-flatsome-activator.php';
+        require_once SHOPACC_CORE_PLUGIN_DIR . 'includes/class-github-updater.php';
+        require_once SHOPACC_CORE_PLUGIN_DIR . 'includes/class-github-config.php';
     }
     
     private function init_hooks() {
@@ -47,6 +49,8 @@ class ShopAcc_Core {
         new ShopAcc_Product_Manager();
         new ShopAcc_Template_Loader();
         new ShopAcc_Flatsome_Activator();
+        
+        $this->init_github_updater();
         
         add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
     }
@@ -66,6 +70,15 @@ class ShopAcc_Core {
     
     public function deactivate() {
         
+    }
+    
+    private function init_github_updater() {
+        if (is_admin()) {
+            $github_username = ShopAcc_GitHub_Config::get_github_username();
+            $github_repo = ShopAcc_GitHub_Config::get_github_repo();
+            
+            new ShopAcc_GitHub_Updater(__FILE__, $github_username, $github_repo);
+        }
     }
     
     private function create_dang_acc_page() {
