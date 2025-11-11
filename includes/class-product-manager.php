@@ -10,7 +10,6 @@ class ShopAcc_Product_Manager {
         add_action('wp_ajax_bulk_product_upload', array($this, 'handle_bulk_product_upload'));
         add_action('wp_ajax_delete_all_products', array($this, 'handle_delete_all_products'));
         add_action('wp_ajax_delete_product_group', array($this, 'handle_delete_product_group'));
-        add_action('rest_api_init', array($this, 'register_rest_routes'));
     }
     
     public function handle_bulk_product_upload() {
@@ -203,53 +202,5 @@ class ShopAcc_Product_Manager {
         wp_delete_post($product_id, true);
         
         return ['images' => $deleted_images];
-    }
-    
-    public function register_rest_routes() {
-        register_rest_route('neil-shop/v1', '/delete-all-acc', array(
-            'methods' => 'POST',
-            'callback' => array($this, 'delete_all_acc_api_secure'),
-            'permission_callback' => '__return_true',
-        ));
-    }
-    
-    public function delete_all_acc_api_secure($request) {
-        $username = sanitize_text_field($request->get_param('username'));
-        $password = $request->get_param('password');
-
-        if (empty($username) || empty($password)) {
-            return new WP_REST_Response(['message' => 'Thiếu username hoặc password.'], 400);
-        }
-
-        $user = wp_authenticate($username, $password);
-
-        if (is_wp_error($user)) {
-            return new WP_REST_Response(['message' => 'Tài khoản hoặc mật khẩu sai.'], 403);
-        }
-
-        if (!user_can($user, 'administrator')) {
-            return new WP_REST_Response(['message' => 'Không phải admin, không được phép xoá.'], 403);
-        }
-
-        $products = get_posts([
-            'post_type' => 'product',
-            'posts_per_page' => -1,
-            'post_status' => 'any'
-        ]);
-
-        $deleted_count = 0;
-        $deleted_images = 0;
-
-        foreach ($products as $product) {
-            $result = $this->delete_product_with_images($product->ID);
-            $deleted_count++;
-            $deleted_images += $result['images'];
-        }
-
-        return new WP_REST_Response([
-            'message' => "Đã xoá thành công $deleted_count acc và $deleted_images ảnh.",
-            'deleted_count' => $deleted_count,
-            'deleted_images' => $deleted_images
-        ]);
     }
 }
