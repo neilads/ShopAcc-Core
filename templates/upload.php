@@ -244,6 +244,5 @@ get_header(); ?>
 <script>
 var ajaxurl = '<?php echo admin_url("admin-ajax.php"); ?>';
 </script>
-<script src="<?php echo SHOPACC_CORE_PLUGIN_URL; ?>assets/js/upload.js"></script>
 
 <?php get_footer(); ?>
